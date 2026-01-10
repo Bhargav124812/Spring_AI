@@ -1,0 +1,21 @@
+spring:
+  application:
+    name: SpringAI
+
+  ai:
+    ollama:
+      base-url: http://localhost:11434
+      chat:
+        options:
+          model: qwen2.5:3b
+    openai:
+      api-key: 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
+      chart:
+        options:
+          model: gpt-4o-mini
+          temperature: 0.9
+
+logging:
+  level:
+    org.springframework.ai:
+      chat.client: DEBUG
