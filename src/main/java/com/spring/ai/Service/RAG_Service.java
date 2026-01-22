@@ -1,9 +1,14 @@
 package com.spring.ai.Service;
 
 
+import com.spring.ai.advisor.TokenUsageAdvisor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
 import org.springframework.ai.chat.client.advisor.SimpleLoggerAdvisor;
+import org.springframework.ai.chat.client.advisor.vectorstore.QuestionAnswerAdvisor;
+import org.springframework.ai.chat.client.advisor.vectorstore.VectorStoreChatMemoryAdvisor;
+import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.prompt.PromptTemplate;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.embedding.EmbeddingModel;
@@ -29,6 +34,8 @@ public class RAG_Service {
 
     private final VectorStore vectorStore;
 
+    private final ChatMemory chatMemory;
+
     @Value("classpath:gym_exercises_guide.pdf")
     Resource gym_pdf;
 
@@ -40,6 +47,39 @@ public class RAG_Service {
         List<Document> chunks= tokenTextSplitter.apply(documents);
 
         vectorStore.add(chunks);
+    }
+
+    public String askAIWithAdvisors(String prompt, String userId) {
+        return chatClient.prompt()
+                .system("""
+                        You are an AI assistant called Cody.
+                        Greet users with your Name (Cody) and the user name if you know their name.
+                        Answer in a friendly, conversational tone.
+                        """)
+                .user(prompt)
+                .advisors(
+//                        new SafeGuardAdvisor(List.of("Politics", "Gaming")),
+
+                        new TokenUsageAdvisor(),
+
+                        MessageChatMemoryAdvisor.builder(chatMemory)
+                                .conversationId(userId)
+                                .build(),
+
+                        VectorStoreChatMemoryAdvisor.builder(vectorStore)
+                                .conversationId(userId)
+                                .defaultTopK(4)
+                                .build(),
+
+                        QuestionAnswerAdvisor.builder(vectorStore)
+                                .searchRequest(SearchRequest.builder()
+                                        .filterExpression("file_name == 'gym_exercises_guide.pdf'")
+                                        .topK(4)
+                                        .build())
+                                .build()
+                )
+                .call()
+                .content();
     }
 
     public String askAI(String prompt){

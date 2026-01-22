@@ -23,4 +23,10 @@ class RAG_ServiceTest {
         String res= ragService.askAI("How Can i do abdomin workout");
         System.out.println(res);
     }
+
+    @Test
+    public void testAskAIWithAdvisor() {
+        String res = ragService.askAIWithAdvisors("What is my name", "bhargav12234");
+        System.out.println(res);
+    }
 }

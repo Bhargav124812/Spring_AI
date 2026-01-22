@@ -21,6 +21,14 @@ spring:
       pgvector:
         initialize-schema: true
 
+    chat:
+      memory:
+        repository:
+          jdbc:
+            initialize-schema: always
+            table-name: chat_memory
+
+
   datasource:
     url: jdbc:postgresql://localhost:5434/my-vector-db
     username: my-user
